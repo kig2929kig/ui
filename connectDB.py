@@ -7,7 +7,7 @@ except ImportError :
 
 try :
     conn = pymysql.connect(host='43.202.4.38',
-                     port= 50273,
+                     port= 59968,
                      user='kig2929kig',
                      password='ansan',
                      db='com3100',
