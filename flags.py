@@ -6,9 +6,20 @@ root = Tk()
 root.title("나라별 국기")
 root.geometry("250x280")
 
+startPage = 1
+totalPage = 0
+
+sql = "select count(*) from worldPopulation"
+cur.execute(sql)
+totalPage = cur.fetchone()[0]
+
 ############################################
 # button function - start
+
+##### findImg func - start
 def findImg() :
+   global startPage
+   
    country_Entry.delete(0,END) 
    imgFile = filedialog.askopenfilename(
        initialdir = 'path', \
@@ -18,9 +29,44 @@ def findImg() :
 
    sql = f"select * from worldPopulation where 국가코드 ='{code}'"
    cur.execute(sql)
-   country = cur.fetchone()[2]
+   result = cur.fetchone()
+   country = result[2]
    country_Entry.insert(END, country)
+   startPage = result[0]
+   pageView.set(str(startPage) + " / " + str(totalPage))
+##### findImg func - end
 
+##### prevPage func - start
+def prevPage() :
+    global startPage
+        
+    if startPage > 1 :
+        startPage = startPage - 1
+    pageView.set(str(startPage) + " / " + str(totalPage))
+    sql = f"select * from worldPopulation where 순번 ='{startPage}'"
+    cur.execute(sql)
+
+    country = cur.fetchone()[2]
+    country_Entry.delete(0,END)
+    country_Entry.insert(END, country)
+    
+##### prevPage func - end
+
+##### nextPage func - start
+def nextPage() :
+    global startPage, totalPage
+    if startPage < totalPage :
+        startPage = startPage + 1
+    pageView.set(str(startPage) + " / " + str(totalPage))
+    sql = f"select * from worldPopulation where 순번 ='{startPage}'"
+    cur.execute(sql)
+    
+    country = cur.fetchone()[2]
+    country_Entry.delete(0,END)
+    country_Entry.insert(END, country)
+##### nextPage func - end
+
+   
 # button function -end
 ############################################
 # Frame - start
@@ -52,15 +98,20 @@ imgLbl.pack()
 # imgFrame - end
 ############################################
 # bottomFrame - start
-prev_btn = Button(bottomFrame, text="<")
+prev_btn = Button(bottomFrame, text="<", command=prevPage)
 prev_btn.pack(side=LEFT, padx=5, pady=5)
 
-page_Lbl = Label(bottomFrame, text="1 / 198")
+pageView = StringVar()
+pageView.set(str(startPage) + " / " + str(totalPage))
+
+page_Lbl = Label(bottomFrame, textvariable = pageView)
 page_Lbl.pack(side=LEFT, padx=15, pady=5)
 
-next_btn = Button(bottomFrame, text=">")
+next_btn = Button(bottomFrame, text=">", command=nextPage)
 next_btn.pack(side=LEFT, padx=5, pady=5)
 # bottomFrame - end
 ############################################
+
+prevPage()
 
 root.mainloop()
