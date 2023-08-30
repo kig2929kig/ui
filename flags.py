@@ -1,9 +1,27 @@
 from tkinter import *
+from tkinter import filedialog
+from connectDB import cur, conn
 
 root = Tk()
 root.title("나라별 국기")
 root.geometry("250x280")
 
+############################################
+# button function - start
+def findImg() :
+   country_Entry.delete(0,END) 
+   imgFile = filedialog.askopenfilename(
+       initialdir = 'path', \
+       title = 'select file', \
+       filetypes = (('png','*.png'),) )
+   code = imgFile[-6:-4]
+
+   sql = f"select * from worldPopulation where 국가코드 ='{code}'"
+   cur.execute(sql)
+   country = cur.fetchone()[2]
+   country_Entry.insert(END, country)
+
+# button function -end
 ############################################
 # Frame - start
 topFrame = Frame(root)
@@ -18,10 +36,11 @@ bottomFrame.pack()
 country_Lbl = Label(topFrame, text="국가", relief="ridge") 
 country_Lbl.pack(side=LEFT, padx=5, pady=5)                
 
-country_Entry = Entry(topFrame)
+country = StringVar()
+country_Entry = Entry(topFrame, textvariable=country)
 country_Entry.pack(side=LEFT,padx=5, pady=5)
 
-findBtn = Button(topFrame, text="찾기")
+findBtn = Button(topFrame, text="찾기", command=findImg)
 findBtn.pack(side=LEFT, padx=5, pady=5)
 # topFrame - end                           
 ############################################
