@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter import filedialog
 from connectDB import cur, conn
 from PIL import Image, ImageTk
+import base64
+from io import BytesIO
 
 root = Tk()
 root.title("나라별 국기")
@@ -10,6 +12,7 @@ root.geometry("250x280")
 startPage = 1
 totalPage = 0
 img = None
+code = ""
 
 sql = "select count(*) from worldPopulation"
 cur.execute(sql)
@@ -18,9 +21,33 @@ totalPage = cur.fetchone()[0]
 ############################################
 # button function - start
 
+##### saveImg func - start
+
+def saveImg() :
+    global code
+    print(code)
+    imgFileName = code + ".png"
+
+    with open(imgFileName, "rb") as image :
+        binary_image = image.read()
+    binary_image = base64.b64encode(binary_image)
+    binary_image = binary_image.decode('UTF-8')
+
+    sql = f"select * from worldPopulation where 국가코드='{code}'"
+    cur.execute(sql)
+    no, code, country, city, population = cur.fetchone() 
+    print(no, code, country, city, population)
+    
+    sql = "insert into flag values(%s, %s, %s)"
+    cur.execute(sql, (no, code, binary_image))
+    conn.commit()
+
+##### saveImg func - end
+
+
 ##### findImg func - start
 def findImg() :
-   global startPage, img
+   global startPage, img, code
    
    country_Entry.delete(0,END) 
    imgFile = filedialog.askopenfilename(
@@ -58,11 +85,32 @@ def prevPage() :
     sql = f"select * from worldPopulation where 순번 ='{startPage}'"
     cur.execute(sql)
 
-    country = cur.fetchone()[2]
+    no, code, country, city, population = cur.fetchone() 
+    print(no, code, country, city, population)
+   
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
     imgLbl.configure(image = imgTemp)
-    
+
+    sql = f"select * from flag where 순번 = {startPage}"
+    cur.execute(sql)
+    no, code, get_img = cur.fetchone()
+    print(no, code)
+    #get_img = cur.fetchone()
+
+    if get_img == None :
+        pass
+    else :        
+        get_img = base64.b64decode(get_img)
+        get_img = Image.open(BytesIO(get_img))
+        
+        
+        resizedImg = get_img.resize((200, 200))
+        resizedImg = ImageTk.PhotoImage(resizedImg)
+        imgLbl.configure(image = resizedImg)
+        imgLbl.image = resizedImg
+       
+        
 ##### prevPage func - end
 
 ##### nextPage func - start
@@ -73,8 +121,10 @@ def nextPage() :
     pageView.set(str(startPage) + " / " + str(totalPage))
     sql = f"select * from worldPopulation where 순번 ='{startPage}'"
     cur.execute(sql)
+
+    no, code, country, city, population = cur.fetchone() 
+    print(no, code, country, city, population)
     
-    country = cur.fetchone()[2]
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
     imgLbl.configure(image = imgTemp)
@@ -98,10 +148,14 @@ country_Lbl.pack(side=LEFT, padx=5, pady=5)
 
 country = StringVar()
 country_Entry = Entry(topFrame, textvariable=country)
+country_Entry.configure(width=15)
 country_Entry.pack(side=LEFT,padx=5, pady=5)
 
 findBtn = Button(topFrame, text="찾기", command=findImg)
-findBtn.pack(side=LEFT, padx=5, pady=5)
+findBtn.pack(side=LEFT, padx=3, pady=5)
+
+saveBtn = Button(topFrame, text="저장", command=saveImg)
+saveBtn.pack(side=LEFT, padx=2, pady=5)
 # topFrame - end                           
 ############################################
 # imgFrame - start
