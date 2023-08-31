@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import filedialog
 from connectDB import cur, conn
+from PIL import Image, ImageTk
 
 root = Tk()
 root.title("나라별 국기")
@@ -8,6 +9,7 @@ root.geometry("250x280")
 
 startPage = 1
 totalPage = 0
+img = None
 
 sql = "select count(*) from worldPopulation"
 cur.execute(sql)
@@ -18,7 +20,7 @@ totalPage = cur.fetchone()[0]
 
 ##### findImg func - start
 def findImg() :
-   global startPage
+   global startPage, img
    
    country_Entry.delete(0,END) 
    imgFile = filedialog.askopenfilename(
@@ -32,8 +34,18 @@ def findImg() :
    result = cur.fetchone()
    country = result[2]
    country_Entry.insert(END, country)
+
+   #img resized - start
+   img = Image.open(imgFile)
+   resizedImg = img.resize((200, 200))
+   resizedImg = ImageTk.PhotoImage(resizedImg)
+   imgLbl.configure(image = resizedImg)
+   imgLbl.image = resizedImg
+   #img reized -end
+   
    startPage = result[0]
    pageView.set(str(startPage) + " / " + str(totalPage))
+   
 ##### findImg func - end
 
 ##### prevPage func - start
@@ -49,6 +61,7 @@ def prevPage() :
     country = cur.fetchone()[2]
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
+    imgLbl.configure(image = imgTemp)
     
 ##### prevPage func - end
 
@@ -64,6 +77,7 @@ def nextPage() :
     country = cur.fetchone()[2]
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
+    imgLbl.configure(image = imgTemp)
 ##### nextPage func - end
 
    
@@ -91,8 +105,8 @@ findBtn.pack(side=LEFT, padx=5, pady=5)
 # topFrame - end                           
 ############################################
 # imgFrame - start
-imgFlag = PhotoImage()
-imgLbl = Label(imgFrame, image = imgFlag, bg='yellow')
+imgTemp = PhotoImage() #빈이미지
+imgLbl = Label(imgFrame, image=imgTemp, bg='yellow')
 imgLbl.configure(width=200, height=200)
 imgLbl.pack()
 # imgFrame - end
