@@ -22,6 +22,26 @@ totalPage = cur.fetchone()[0]
 # button function - start
 
 ##### img resize - start #####
+def img_resize(startPage) :
+    sql = f"select * from flag where 순번 = {startPage}"
+    cur.execute(sql)
+    try :
+        no, code, get_img = cur.fetchone()
+        print(no, code)
+        if get_img == None :
+            pass
+        else :        
+            get_img = base64.b64decode(get_img)
+            get_img = Image.open(BytesIO(get_img))
+                
+            resizedImg = get_img.resize((200, 200))
+            resizedImg = ImageTk.PhotoImage(resizedImg)
+            imgLbl.configure(image = resizedImg)
+            imgLbl.image = resizedImg
+        
+    except Exception as e :
+        print(e)
+     
 
 ##### img resize - end #####
 
@@ -91,25 +111,8 @@ def prevPage() :
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
     imgLbl.configure(image = imgTemp)
-
-    sql = f"select * from flag where 순번 = {startPage}"
-    cur.execute(sql)
-    no, code, get_img = cur.fetchone()
-    print(no, code)
-    #get_img = cur.fetchone()
-
-    #img resize - start
-    if get_img == None :
-        pass
-    else :        
-        get_img = base64.b64decode(get_img)
-        get_img = Image.open(BytesIO(get_img))
-                
-        resizedImg = get_img.resize((200, 200))
-        resizedImg = ImageTk.PhotoImage(resizedImg)
-        imgLbl.configure(image = resizedImg)
-        imgLbl.image = resizedImg
-    #img resize - end  
+    img_resize(startPage)
+    
 ##### prevPage func - end
 
 ##### nextPage func - start
@@ -127,6 +130,8 @@ def nextPage() :
     country_Entry.delete(0,END)
     country_Entry.insert(END, country)
     imgLbl.configure(image = imgTemp)
+    img_resize(startPage)
+    
 ##### nextPage func - end
 
    
