@@ -21,8 +21,11 @@ totalPage = cur.fetchone()[0]
 ############################################
 # button function - start
 
-##### saveImg func - start
+##### img resize - start #####
 
+##### img resize - end #####
+
+##### saveImg func - start
 def saveImg() :
     global code
     print(code)
@@ -41,9 +44,7 @@ def saveImg() :
     sql = "insert into flag values(%s, %s, %s)"
     cur.execute(sql, (no, code, binary_image))
     conn.commit()
-
 ##### saveImg func - end
-
 
 ##### findImg func - start
 def findImg() :
@@ -72,7 +73,6 @@ def findImg() :
    
    startPage = result[0]
    pageView.set(str(startPage) + " / " + str(totalPage))
-   
 ##### findImg func - end
 
 ##### prevPage func - start
@@ -98,19 +98,18 @@ def prevPage() :
     print(no, code)
     #get_img = cur.fetchone()
 
+    #img resize - start
     if get_img == None :
         pass
     else :        
         get_img = base64.b64decode(get_img)
         get_img = Image.open(BytesIO(get_img))
-        
-        
+                
         resizedImg = get_img.resize((200, 200))
         resizedImg = ImageTk.PhotoImage(resizedImg)
         imgLbl.configure(image = resizedImg)
         imgLbl.image = resizedImg
-       
-        
+    #img resize - end  
 ##### prevPage func - end
 
 ##### nextPage func - start
