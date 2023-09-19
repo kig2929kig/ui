@@ -77,8 +77,9 @@ def randCountryList():
     RAND_COUNTRY_LIST.append(cur.fetchone())
 ## END 문제 리스트 ##  
 
-def showImg(problemNum):
-  sql = f'select * from flag where 순번 = {problemNum}'
+def showImg(PROBLEM):
+  
+  sql = f'select * from flag where 순번 = {PROBLEM}'
   cur.execute(sql)
   no, code, img = cur.fetchone()
   
@@ -95,7 +96,8 @@ def showImg(problemNum):
 def btn_click() :
   global PROBLEM
   PROBLEM = PROBLEM + 1
-  showImg(PROBLEM)
+  showImg(RAND_COUNTRY_LIST[PROBLEM][0])
+  wrongAnser(PROBLEM)
 
 def wrongAnser(PROBLEM):
   answer = RAND_COUNTRY_LIST[PROBLEM][2]
@@ -124,6 +126,7 @@ def wrongAnser(PROBLEM):
 
 def playGame() :
   randCountryList()
+  print(RAND_COUNTRY_LIST)
   showImg(RAND_COUNTRY_LIST[0][0])
   wrongAnser(PROBLEM) 
   
