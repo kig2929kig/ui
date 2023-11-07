@@ -4,11 +4,13 @@ import reomve_ansi_escape_codes
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 import os, subprocess
 from threading import Thread
+import platform
 
 win_size_width = 450
-win_size_height = 400
+win_size_height = 200
 save_folder = 'mp3'
 
 root = Tk()
@@ -21,42 +23,61 @@ def url_clear():
   url_entry.delete(0,END)
     
 def show_folder():
+  current_os = platform.system()
+  
   if radio_value.get() == 'mp3':
     path = os.path.realpath('.//mp3/')
-    os.startfile(path) # window system
-    #subprocess.run(['nemo', path], bufsize=0) #linux system - hamoniKR
+    if current_os == 'Windows':
+      os.startfile(path) # window system
+    else :
+      subprocess.run(['nemo', path], bufsize=0) #linux system - hamoniKR
   elif radio_value.get() == 'mp4':
     path = os.path.realpath('.//mv/')
-    os.startfile(path) # window system
-    #subprocess.run(['nemo', path], bufsize=0) #linux system - hamoniKR
+    if current_os == 'Windows':
+      os.startfile(path) # window system
+    else:
+      subprocess.run(['nemo', path], bufsize=0) #linux system - hamoniKR
 
 def complete_status(down):
-    if down['status'] == 'finished':
-      print('\n Download completed')
-      btn_download['state'] = 'active'
-            
-    if down['status'] == 'downloading':
-      print(f"Downloading... {down['_percent_str']} complete")
-      prgrss_value = down['_percent_str']
-      pv_str = reomve_ansi_escape_codes.remove(prgrss_value)
-      pv_float = float(pv_str[:-1])
-      progress_state_value.set(reomve_ansi_escape_codes.remove(prgrss_value))
-      progress_current_value.set(pv_float)
-      btn_download['state'] = 'disable'
+  if down['status'] == 'finished':
+    print('\n Download completed')
+  if down['status'] == 'downloading':
+    print(f"Downloading... {down['_percent_str']} complete")
+    prgrss_value = down['_percent_str']
+    pv_str = reomve_ansi_escape_codes.remove(prgrss_value)
+    pv_float = float(pv_str[:-1])
+    progress_state_value.set(reomve_ansi_escape_codes.remove(prgrss_value))
+    progress_current_value.set(pv_float)
+  if down['status'] == 'error':
+    btn_download['state'] = 'active'
+    messagebox.showerror("ERROR", "다운로드 중 에러가 발생했습니다.")
+          
+def post_complete_status(down):
+  if down['status'] == 'finished':
+    btn_download['state'] = 'active'
  
 def threading() :
   btn_download_thread = Thread(target=ytd_download)
   btn_download_thread.start()
   
 def ytd_download():
+  btn_download['state'] = 'disable'
   if radio_value.get() == 'mp3':
-    opts_audio_add = {'progress_hooks': [complete_status],}
+    opts_audio_add = {'progress_hooks': [complete_status], 'postprocessor_hooks': [post_complete_status]}
     opts_audio.update(opts_audio_add)
-    download_youtube(url_entry.get(), opts_audio)
+    try:
+      download_youtube(url_entry.get(), opts_audio)
+    except :
+      messagebox.showerror("ERROR", "입력한 주소가 잘못되었습니다.")
+      btn_download['state'] = 'active'
   if radio_value.get() == 'mp4':
-    opts_video_add = {'progress_hooks': [complete_status],}
+    opts_video_add = {'progress_hooks': [complete_status], 'postprocessor_hooks': [post_complete_status]}
     opts_video.update(opts_video_add)
-    download_youtube(url_entry.get(), opts_video)
+    try:
+      download_youtube(url_entry.get(), opts_video)
+    except :
+      messagebox.showerror("ERROR", "입력한 주소가 잘못되었습니다.")
+      btn_download['state'] = 'active'
     
 #Frame
 url_Frame = LabelFrame(root, text='주소(URL)')
